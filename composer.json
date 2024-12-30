@@ -16,11 +16,12 @@
     "authors": [
         {
             "name": "Belhassen",
-            "email": "belhassen.bouchoucha@cairn.info"
+            "email": "crownbackend@gmail.com"
         }
     ],
     "require": {
-        "php": "^7.2 || ^8.0"
+        "php": "^7.2 || ^8.0",
+        "ext-sodium": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5"

@@ -11,7 +11,8 @@ class Key
      */
    private function generateKey(): string
    {
-       return bin2hex(random_bytes(64));
+       $keyHex = bin2hex(random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES));
+       return base64_encode(hex2bin($keyHex));
    }
 
     /**
@@ -28,20 +29,40 @@ class Key
        }
 
        $envContent = file_get_contents($envFile); // Lit le contenu actuel
-
        if (strpos($envContent, 'ENCRYPTION_KEY=') !== false) {
-
            throw new KeyException();
        }
 
        file_put_contents($envFile, "ENCRYPTION_KEY={$this->generateKey()}\n", FILE_APPEND);
    }
 
-}
+   public function getKey(): string
+   {
+       $rootDir = dirname(__DIR__, 1);
+       $envFile = $rootDir . '/.env';
 
-try {
-    $key = new Key();
-    $key->ensureEnvFileExists();
-} catch (KeyException $e) {
-    echo "Erreur : " . $e->getMessage() . "\n";
+// Vérifier si le fichier .env existe
+       if (!file_exists($envFile)) {
+           throw new \Exception('Le fichier .env est introuvable.');
+       }
+
+// Lire le fichier .env ligne par ligne
+       $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// Extraire la clé de cryptage
+       $key = null;
+       foreach ($lines as $line) {
+           if (strpos($line, 'ENCRYPTION_KEY=') === 0) {
+               $key = substr($line, strlen('ENCRYPTION_KEY='));
+               break;
+           }
+       }
+
+// Vérifier que la clé a été trouvée
+       if (empty($key)) {
+           throw new \Exception('La clé de cryptage est manquante dans le fichier .env.');
+       }
+       return $key;
+   }
+
 }
